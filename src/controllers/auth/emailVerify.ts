@@ -39,18 +39,18 @@ export default class EmailVerify {
     // }
     static async store(req: Request, res: Response): Promise<Response> {
         try {
-            const { ownerID, token } = req.body as IEmailVerify;
+            const { ownerId, token } = req.body as IEmailVerify;
             await new Validator<IEmailVerify>(EmailVarifySchema).validateAll(req.body);
 
-            const user = await prisma.user.findUnique({ where: { id: ownerID } });
+            const user = await prisma.user.findUnique({ where: { id: ownerId } });
             if (!user) {
                 return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: "User not found." });
             }
-            const verifyData = await prisma.emailVerify.findFirst({ where: { ownerID: user.id } });
+            const verifyData = await prisma.emailVerifyToken.findFirst({ where: { ownerId: user.id } });
             if (verifyData && (await Bcrypt.compare(token, verifyData.token))) {
                 prisma.$transaction(async (p) => {
-                    await prisma.user.update({ where: { id: ownerID }, data: { verifiedAt: new Date() } });
-                    await prisma.emailVerify.delete({ where: { id: verifyData.id } });
+                    await prisma.user.update({ where: { id: ownerId }, data: { verifiedAt: new Date() } });
+                    await prisma.emailVerifyToken.delete({ where: { id: verifyData.id } });
                 });
                 return res.status(200).json({ message: "E-mail is verified" });
             } else {

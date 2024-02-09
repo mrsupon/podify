@@ -10,44 +10,44 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model user {
+model User {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   email         String      @unique
   password      String
   verifiedAt    DateTime?    
-  avatar        avatarType?
+  avatar        AvatarType?
   favoriteIDs   String[]    @db.ObjectId
   followerIDs   String[]    @db.ObjectId
-  followers     user[]      @relation("UserSelf", fields: [followerIDs], references: [id])
+  followers     User[]      @relation("userSelf", fields: [followerIDs], references: [id])
   followingIDs  String[]    @db.ObjectId
-  followings    user[]      @relation("UserSelf", fields: [followingIDs], references: [id])
-  emailVerify   emailVerify?
-  passwordReset passwordReset?
+  followings    User[]      @relation("userSelf", fields: [followingIDs], references: [id])
+  emailVerify   EmailVerifyToken?
+  passwordReset PasswordResetToken?
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime?   @updatedAt
 
 } 
 
-type avatarType {
+type AvatarType {
   url           String 
   publicId      String    @db.ObjectId
 }
 
-model emailVerify{
+model EmailVerifyToken{
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   token         String
-  ownerID       String      @unique @db.ObjectId
-  user          user        @relation(fields: [ownerID], references: [id])
+  ownerId       String      @unique @db.ObjectId
+  user          User        @relation(fields: [ownerId], references: [id])
   createdAt     DateTime    @default(now()) 
 }
 
-model passwordReset{
+model PasswordResetToken{
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   token         String
-  ownerID       String      @unique @db.ObjectId
-  user          user        @relation(fields: [ownerID], references: [id])
+  ownerId       String      @unique @db.ObjectId
+  user          User        @relation(fields: [ownerId], references: [id])
   createdAt     DateTime    @default(now()) 
 }
 

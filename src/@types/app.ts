@@ -19,17 +19,17 @@ export interface IAvatar {
 export interface IEmailVerify {
     id: string;
     token: string;
-    ownerID: string;
+    ownerId: string;
     createdAt: string;
 }
 
 export interface IEmailReVerify {
-    userID: string;
+    userId: string;
 }
 
 export interface IPasswordReset {
     id: string;
     token: string;
-    ownerID: string;
+    ownerId: string;
     createdAt: string;
 }

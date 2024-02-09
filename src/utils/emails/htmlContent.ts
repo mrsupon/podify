@@ -14,7 +14,7 @@ export default abstract class HtmlContent<T extends object> {
     getHtmlFromEJS(filePath = ""): string {
         let html = "";
         if (filePath) {
-            filePath = Helper.__dir + filePath;
+            filePath = Helper.__dirname + filePath;
             ejs.renderFile(filePath, this.options, (err, str) => {
                 if (err) throw err;
                 else {

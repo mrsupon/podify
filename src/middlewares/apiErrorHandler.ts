@@ -1,15 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
-import createError from 'http-errors';
+import { NextFunction, Request, Response } from "express";
+import createError from "http-errors";
+import env from "../utils/env_variables.js";
+import AppError from "../utils/appError";
 
-declare type WebError = Error & { status?: number };
-const errorHandler = (err: WebError, req: Request, res: Response, next: NextFunction): void => {
-    // set locals, only providing error in development
-    //res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
+const errorHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {
+    const mode = env.NODE_ENV?.trim() || "development";
 
-    // render the error page
-    res.status(err.status || 500);
-    res.json({ error: { title: err.name, message: err.message } });
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode);
+
+    if (mode === "production") {
+        res.json({ error: { title: err.name, statusCode: statusCode, message: err.message } });
+    } else {
+        //development
+        res.json({ error: { title: err.name, statusCode: statusCode, message: err.message, details: err, stack: err.stack } });
+    }
 };
 
 const errorNotFoundHandler = (req: Request, res: Response, next: NextFunction): void => {

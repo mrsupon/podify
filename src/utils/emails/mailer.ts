@@ -37,7 +37,7 @@ export default class Mailer {
         return this.mailOptions;
     }
     setAttachments(filename: string, filePath: string, cid: string) {
-        this.mailOptions.attachments = _.concat(this.mailOptions.attachments, [{ filename: filename, path: path.join(Helper.__dir, filePath), cid: cid }]);
+        this.mailOptions.attachments = _.concat(this.mailOptions.attachments, [{ filename: filename, path: path.join(Helper.__dirname, filePath), cid: cid }]);
     }
 
     async send(to = "", subject = "", content = "") {
@@ -46,9 +46,8 @@ export default class Mailer {
             this.mailOptions.to = to;
             this.mailOptions.subject = subject;
             this.mailOptions.html = content;
-            const result = await this.transport.sendMail(this.mailOptions);
+            return await this.transport.sendMail(this.mailOptions);
             //console.dir(result, Infinity);
-            return result;
         } catch (err) {
             throw err;
         }

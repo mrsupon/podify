@@ -41,22 +41,22 @@ export default class PasswordReset {
     // }
     static async store(req: Request, res: Response): Promise<Response> {
         try {
-            const { userID } = req.body as { userID: string };
+            const { userId } = req.body as { userId: string };
             await new Validator<IPasswordReset>(PasswordResetSchema).validateAll(req.body);
 
-            const foundUser = await prisma.user.findUnique({ where: { id: userID } });
+            const foundUser = await prisma.user.findUnique({ where: { id: userId } });
             if (!foundUser) {
                 return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: "User ID is not found." });
             }
 
-            const foundPasswordReset = await prisma.passwordReset.findUnique({ where: { ownerID: foundUser.id } });
+            const foundPasswordReset = await prisma.passwordResetToken.findUnique({ where: { ownerId: foundUser.id } });
             if (foundPasswordReset) {
-                const deletedEmailVerify = await prisma.passwordReset.delete({ where: { id: foundPasswordReset.id } });
+                const deletedEmailVerify = await prisma.passwordResetToken.delete({ where: { id: foundPasswordReset.id } });
             }
 
             const token = crypto.randomBytes(36).toString("hex");
-            await prisma.passwordReset.create({ data: { ownerID: userID, token: token } });
-            const resetLink = `${env.PASSWORD_RESET_LINK}?token=${token}&userID=${userID}`;
+            await prisma.passwordResetToken.create({ data: { ownerId: userId, token: token } });
+            const resetLink = `${env.PASSWORD_RESET_LINK}?token=${token}&userId=${userId}`;
 
             const htmlContent = new ResetPasswordHtmlContent();
             const options = htmlContent.getOptions();

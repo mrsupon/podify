@@ -2,15 +2,11 @@
 import { Request, Response, RequestHandler } from "express";
 import PrismaMongodb, { prisma } from "../../databases/mongodb/prisma.js";
 import _ from "lodash";
-import { IEmailReVerify, IEmailVerify, IUser } from "../../@types/app.js";
+import { IEmailReVerify } from "../../@types/app.js";
 import * as Yup from "yup";
 
 import Validator from "../../validations/validator.js";
 import Status from "http-status";
-import Mailer from "../../utils/emails/mailer.js";
-import Bcrypt from "bcrypt";
-import crypto from "crypto";
-import Helper from "../../utils/helper.js";
 import { EmailReVarifySchema } from "../../validations/auth/emailReVerify.js";
 import RegisterUserController from "./registeredUser.js";
 
@@ -40,18 +36,18 @@ export default class EmailReVerify {
     // }
     static async store(req: Request, res: Response): Promise<Response> {
         try {
-            const { userID } = req.body as { userID: string };
+            const { userId } = req.body as { userId: string };
             await new Validator<IEmailReVerify>(EmailReVarifySchema).validateAll(req.body);
 
-            const foundUser = await prisma.user.findUnique({ where: { id: userID } });
+            const foundUser = await prisma.user.findUnique({ where: { id: userId } });
             if (!foundUser) {
                 return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: "User ID is not found." });
             }
 
             if (!foundUser.verifiedAt) {
-                const foundEmailVerify = await prisma.emailVerify.findUnique({ where: { ownerID: foundUser.id } });
+                const foundEmailVerify = await prisma.emailVerifyToken.findUnique({ where: { ownerId: foundUser.id } });
                 if (foundEmailVerify) {
-                    const deletedEmailVerify = await prisma.emailVerify.delete({ where: { id: foundEmailVerify.id } });
+                    const deletedEmailVerify = await prisma.emailVerifyToken.delete({ where: { id: foundEmailVerify.id } });
                 }
 
                 await RegisterUserController.createVerifyandMail(foundUser);

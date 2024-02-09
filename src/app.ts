@@ -17,10 +17,10 @@ const app = express();
 
 // Express configuration
 app.set("port", env.PORT || 3000);
-//const __dirname = dirname(fileURLToPath(import.meta.url));
-//app.set('views', path.join(__dirname, '../views'));
+//const __dirnamename = dirname(fileURLToPath(import.meta.url));
+//app.set('views', path.join(__dirnamename, '../views'));
 //app.set('view engine', 'ejs');
-Helper.__dir = dirname(fileURLToPath(import.meta.url));
+Helper.__dirname = dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

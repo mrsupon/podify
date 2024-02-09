@@ -72,10 +72,10 @@ export default class ResgisteredUser {
             if (!otp) {
                 throw Error("Could not create OTP data.");
             }
-            await prisma.emailVerify.create({
+            await prisma.emailVerifyToken.create({
                 data: {
                     token: await Bcrypt.hash(otp, 10),
-                    ownerID: user.id,
+                    ownerId: user.id,
                 },
             });
 
@@ -85,7 +85,7 @@ export default class ResgisteredUser {
             options.btnTitle = otp;
 
             const mailer = new Mailer();
-            mailer.setAttachments("logo.png", "/public/images/emailAttachments/logo.png", "logo");
+            mailer.setAttachments("logo.png", "/public/images/emailAttachments/logoa.png", "logo");
             mailer.setAttachments("welcome.png", "/public/images/emailAttachments/welcome.png", "welcome");
 
             await mailer.send(user.email, "Verify E-mail", htmlContent.getHtmlFromEJS("/views/emails/verifyEmail.ejs"));

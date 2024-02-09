@@ -3,7 +3,7 @@ import { ObjectId } from "bson";
 import path from "path";
 
 export default class Helper {
-    static __dir = "";
+    static __dirname = "";
 
     static getPath(location: string) {
         return path.join(process.cwd(), location);

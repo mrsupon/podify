@@ -3,7 +3,7 @@ import * as Yup from "yup";
 
 export const EmailVarifySchema = Yup.object().shape({
     token: Yup.string().trim().required("OTP is invalid."),
-    ownerID: Yup.string()
+    ownerId: Yup.string()
         .transform(function (value) {
             console.log(value);
             if (this.isType(value) && Helper.isValidObjectId(value)) {

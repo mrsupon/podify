@@ -1,23 +1,29 @@
 //routes/web
 
 import express, { Router, Express, Request, Response } from "express";
-import { toMiddleware } from "../../utils/toMiddleware.js";
+import { asyncMiddleware } from "../../utils/asyncMiddleware.js";
 
-import RegisterUserController from "../../controllers/auth/registeredUser.js";
+import RegisteredUserController from "../../controllers/auth/registeredUser.js";
 import EmailVerifyController from "../../controllers/auth/emailVerify.js";
-import EmailReVerifyController from "../../controllers/auth/emailReVerify.js";
-import PasswordResetController from "../../controllers/auth/passwordReset.js";
+import EmailReVerifyNotificationController from "../../controllers/auth/emailReVerifyNotification.js";
+import PasswordResetNotificationController from "../../controllers/auth/passwordResetNotification.js";
+import PasswordResetVerifyController from "../../controllers/auth/passwordResetVerify.js";
+import NewPasswordController from "../../controllers/auth/newPassword.js";
 
 const router = Router();
 
 router.use("/api/auth", [
-    router.post("/register", toMiddleware(RegisterUserController.store)),
+    router.post("/signup", asyncMiddleware(RegisteredUserController.store)),
 
-    router.post("/email-verify", toMiddleware(EmailVerifyController.store)),
+    router.post("/email-verify", asyncMiddleware(EmailVerifyController.store)),
 
-    router.post("/email-reverify", toMiddleware(EmailReVerifyController.store)),
+    router.post("/email-reverify-notification", asyncMiddleware(EmailReVerifyNotificationController.store)),
 
-    router.post("/password-reset", toMiddleware(PasswordResetController.store)),
+    router.post("/password-reset-notification", asyncMiddleware(PasswordResetNotificationController.store)),
+
+    router.post("/password-reset-verify", asyncMiddleware(PasswordResetVerifyController.store)),
+
+    router.post("/password-reset", asyncMiddleware(NewPasswordController.store)),
 ]);
 
 export default router;

@@ -9,12 +9,12 @@ export interface IOptions {
     btnTitle: string;
 }
 
-export default class VerifyHtmlContent extends HtmlContent<IOptions> {
+export default class ResetPasswordHtmlContent extends HtmlContent<IOptions> {
     constructor() {
         super();
         this.options = {
             title: "Reset your password",
-            message: "forget password",
+            message: "",
             logo: "cid:logo",
             banner: "cid:forget_password",
             link: "#",

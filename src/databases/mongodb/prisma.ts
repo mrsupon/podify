@@ -9,12 +9,12 @@ export default class Prisma {
         this.#prisma = new PrismaClient();
         if (!Prisma._instance) {
             Prisma._instance = this;
-            this.createIndexTTL("emailVerify", "createdAt", { createdAt: 1 }, 0.5 * 3600)
+            this.createIndexTTL("EmailVerifyToken", "createdAt", { createdAt: 1 }, 0.5 * 3600)
                 .then((result) => {})
                 .catch((err) => {
                     throw err;
                 });
-            this.createIndexTTL("passwordReset", "createdAt", { createdAt: 1 }, 0.5 * 3600)
+            this.createIndexTTL("PasswordResetToken", "createdAt", { createdAt: 1 }, 0.5 * 3600)
                 .then((result) => {})
                 .catch((err) => {
                     throw err;

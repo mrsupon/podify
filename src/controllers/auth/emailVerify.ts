@@ -2,16 +2,14 @@
 import { Request, Response, RequestHandler } from "express";
 import PrismaMongodb, { prisma } from "../../databases/mongodb/prisma.js";
 import _ from "lodash";
-import { IEmailVerify, IUser } from "../../@types/app.js";
 import * as Yup from "yup";
 import { EmailVarifySchema } from "../../validations/auth/emailVerify.js";
 
 import Validator from "../../validations/validator.js";
-import Status from "http-status";
-import Mailer from "../../utils/emails/mailer.js";
+import { status } from "../../utils/httpStatus.js";
+
 import Bcrypt from "bcrypt";
-import crypto from "crypto";
-import Helper from "../../utils/helper.js";
+import AppError from "../../utils/appError.js";
 
 export default class EmailVerify {
     public prisma = new PrismaMongodb().getPrisma();
@@ -39,12 +37,13 @@ export default class EmailVerify {
     // }
     static async store(req: Request, res: Response): Promise<Response> {
         try {
-            const { ownerId, token } = req.body as IEmailVerify;
-            await new Validator<IEmailVerify>(EmailVarifySchema).validateAll(req.body);
+            type objType = { ownerId: string; token: string };
+            const { ownerId, token } = req.body as objType;
+            await new Validator<objType>(EmailVarifySchema).validateAll(req.body);
 
             const user = await prisma.user.findUnique({ where: { id: ownerId } });
             if (!user) {
-                return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: "User not found." });
+                throw new AppError(status.UNPROCESSABLE_ENTITY_422.code, "User not found.");
             }
             const verifyData = await prisma.emailVerifyToken.findFirst({ where: { ownerId: user.id } });
             if (verifyData && (await Bcrypt.compare(token, verifyData.token))) {
@@ -54,11 +53,13 @@ export default class EmailVerify {
                 });
                 return res.status(200).json({ message: "E-mail is verified" });
             } else {
-                return res.status(Status.BAD_REQUEST).json({ error: "Wrong OTP" });
+                // return res.status(status.BAD_REQUEST_400.code).json({ error: "Wrong OTP" });
+                throw new AppError(status.BAD_REQUEST_400.code, "Wrong OTP");
             }
         } catch (error) {
             if (error instanceof Yup.ValidationError) {
-                return res.status(422).json({ error: error.value });
+                //return res.status(422).json({ error: error.value });
+                throw new AppError(status.BAD_REQUEST_400.code, "Validation error", error.value);
             }
             throw error;
         }

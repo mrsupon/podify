@@ -7,5 +7,5 @@ export const RegisterUserSchema = Yup.object().shape({
         .trim()
         .required("Password is missing.")
         .min(8, "Password is too short.")
-        .matches(/^(?=.*\d)(?=.*[a-zA-Z])(?!.*[\W_\x7B-\xFF]).{8,15}$/, "Password is invalid."),
+        .matches(/^(?=.*\d)(?=.*[a-zA-Z])(?!.*[\W_\x7B-\xFF]).{8,15}$/, "Password is too simple."),
 });

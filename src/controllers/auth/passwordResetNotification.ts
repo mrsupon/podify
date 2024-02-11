@@ -2,15 +2,18 @@
 import { Request, Response, RequestHandler } from "express";
 import PrismaMongodb, { prisma } from "../../databases/mongodb/prisma.js";
 import _ from "lodash";
-import { IEmailReVerify } from "../../@types/app.js";
 import * as Yup from "yup";
 
 import Validator from "../../validations/validator.js";
-import Status from "http-status";
-import { EmailReVarifySchema } from "../../validations/auth/emailReVerify.js";
-import RegisterUserController from "./registeredUser.js";
+import { status } from "../../utils/httpStatus.js";
+import ResetPasswordHtmlContent from "../../utils/emails/htmlContents/resetPasswordHtmlContent.js";
+import Mailer from "../../utils/emails/mailer.js";
+import crypto from "crypto";
+import { PasswordResetSchema } from "../../validations/auth/passwordResetNotification.js";
+import env from "../../utils/variables.js";
+import AppError from "../../utils/appError.js";
 
-export default class EmailReVerify {
+export default class PasswordResetNotification {
     public prisma = new PrismaMongodb().getPrisma();
 
     // async index(req: Request, res: Response): Promise<Response> {
@@ -36,32 +39,46 @@ export default class EmailReVerify {
     // }
     static async store(req: Request, res: Response): Promise<Response> {
         try {
-            const { userId } = req.body as { userId: string };
-            await new Validator<IEmailReVerify>(EmailReVarifySchema).validateAll(req.body);
+            type objType = { userId: string };
+            const { userId } = req.body as objType;
+            await new Validator<objType>(PasswordResetSchema).validateAll(req.body);
 
             const foundUser = await prisma.user.findUnique({ where: { id: userId } });
             if (!foundUser) {
-                return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: "User ID is not found." });
+                throw new AppError(status.UNPROCESSABLE_ENTITY_422.code, "User not found.");
             }
 
-            if (!foundUser.verifiedAt) {
-                const foundEmailVerify = await prisma.emailVerifyToken.findUnique({ where: { ownerId: foundUser.id } });
-                if (foundEmailVerify) {
-                    const deletedEmailVerify = await prisma.emailVerifyToken.delete({ where: { id: foundEmailVerify.id } });
-                }
-
-                await RegisterUserController.createVerifyandMail(foundUser);
-                return res.status(Status.CREATED).json({ message: "Please check your email.", user: foundUser });
-            } else {
-                return res.status(Status.CREATED).json({ error: "This user had verified already.", verifiedAt: foundUser.verifiedAt.toString() });
+            const foundPasswordReset = await prisma.passwordResetToken.findUnique({ where: { ownerId: foundUser.id } });
+            if (foundPasswordReset) {
+                await prisma.passwordResetToken.delete({ where: { id: foundPasswordReset.id } });
             }
+
+            const token = crypto.randomBytes(36).toString("hex");
+            await prisma.passwordResetToken.create({ data: { ownerId: userId, token: token } });
+            const resetLink = `${env.PASSWORD_RESET_LINK}?token=${token}&userId=${userId}`;
+
+            const htmlContent = new ResetPasswordHtmlContent();
+            const options = htmlContent.getOptions();
+            options.message = htmlContent.getMessage({ name: foundUser.name });
+            options.link = resetLink;
+            options.btnTitle = "Reset Password";
+
+            const mailer = new Mailer();
+            mailer.setAttachments("logo.png", "/public/images/emailAttachments/logo.png", "logo");
+            mailer.setAttachments("forget_password.png", "/public/images/emailAttachments/forget_password.png", "forget_password");
+
+            await mailer.send(foundUser.email, "Reset Password", htmlContent.getHtmlFromEJS("/views/emails/resetPassword.ejs"));
+
+            return res.status(status.CREATED_201.code).json({ message: "Please check reset password link in your email.", user: foundUser });
         } catch (error) {
             if (error instanceof Yup.ValidationError) {
-                return res.status(Status.UNPROCESSABLE_ENTITY).json({ error: error.value });
+                //return res.status(422).json({ error: error.value });
+                throw new AppError(status.BAD_REQUEST_400.code, "Validation error", error.value);
             }
             throw error;
         }
     }
+
     // async patch(req: Request, res: Response): Promise<Response> {
     // try {
     //     const { id } = req.params;

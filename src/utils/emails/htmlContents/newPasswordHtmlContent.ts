@@ -9,22 +9,20 @@ export interface IOptions {
     btnTitle: string;
 }
 
-export default class VerifyEmailHtmlContent extends HtmlContent<IOptions> {
+export default class NewPasswordHtmlContent extends HtmlContent<IOptions> {
     constructor() {
         super();
         this.options = {
-            title: "Welcome to Podify",
+            title: "Reset password successfully",
             message: "",
             logo: "cid:logo",
-            banner: "cid:welcome",
+            banner: "cid:forget_password",
             link: "#",
-            btnTitle: "Verify",
+            btnTitle: "Link",
         };
     }
 
     getMessage(data = { name: "" }) {
-        return `Hi ${data.name}, welcome to Podify! 
-        There are so much thing that we do for verified users. 
-        Use the given OTP to verify your email.`;
+        return `Dear ${name} we just updated your new password. You can now sign in with your new password.`;
     }
 }
